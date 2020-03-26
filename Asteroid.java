@@ -1,5 +1,6 @@
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.image.Image;
 import java.util.Random;
 
 public class Asteroid {
@@ -9,7 +10,12 @@ public class Asteroid {
 	
 	boolean active;
 	
-	public Asteroid() {
+	Image img;
+	
+	public Asteroid(Image i) {
+		
+		this.img = i;
+		
 		Random rand = new Random();
 		
 		// Random position
@@ -29,7 +35,7 @@ public class Asteroid {
 			this.x += this.dx;
 			this.y += this.dy;
 			
-			if (this.x > StarTrek.WIDTH - diameter|| this.x < 0 + diameter) {
+			if (this.x > StarTrek.WIDTH - diameter|| this.x < 0) {
 				this.dx = -this.dx;
 			}
 			if (this.y > StarTrek.HEIGHT - 150 - diameter || this.y < 0 + diameter) {
@@ -72,6 +78,8 @@ public class Asteroid {
 		if (active) {
 			gc.setFill(Color.WHITE);
 			gc.fillOval(this.x, this.y, diameter, diameter);
+			
+//			gc.drawImage(this.img, this.x, this.y);
 		}
 	}
 

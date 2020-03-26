@@ -29,10 +29,10 @@ public class Phaser {
 		this.dx = 0;
 		this.dy = -10;
 		
-		this.active = false;
+		this.active = true;
 	}
 	
-	void render(GraphicsContext gc ) {
+	void render(GraphicsContext gc) {
 		if (active) {
 			switch (this.type) {
 				case 0:
@@ -56,11 +56,26 @@ public class Phaser {
 	}
 	
 	void update() {
-		this.x += dx;
-		this.y += dy;
 		
-		if (this.y + this.length < 0) {
-			this.active = false;
+		switch (this.type) {
+			// Player case
+			case 3:
+				this.x += dx;
+				this.y += dy;
+				
+				if (this.y + this.length < 0) {
+					this.active = false;
+				}
+				break;
+			// Otherwise enemy
+			default:
+				this.x += dx;
+				this.y -= dy;
+				
+				if (this.y + this.length > StarTrek.FIELDHEIGHT) {
+					this.active = false;
+				}
+				break;
 		}
 	}
 	

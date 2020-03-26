@@ -2,7 +2,7 @@ import javafx.geometry.BoundingBox;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javafx.scene.transform.Affine;
+import javafx.scene.media.AudioClip;
 
 public class PlayerShip extends Sprite {
 
@@ -10,35 +10,58 @@ public class PlayerShip extends Sprite {
 	int p_aim = 0; // phaser aim angle offset
 	double theta = 0.0;
 	double dtheta = 5.0;
-	
-	Phaser[] beams = new Phaser[5];
-	int phaser = beams.length - 1;
 
+	// Setup phaser parameters
 	final int PHASERRELOAD = StarTrek.FPS * 10;
-	int phaserCount = beams.length;
-	boolean phaserEmpty = false;
-
-	int torpedoCount = 0;
-	boolean torpedoEmpty = false;
-
-	Torpedo[] torpedos = new Torpedo[3];
-	int torpedo = torpedos.length - 1;
+	final int PHASERLIMIT = 11;
+	int numPhasers = 0;
+	Phaser[] phaserBank = new Phaser[PHASERLIMIT];
+	boolean phaserCooldown = false;
+	int counter = PHASERRELOAD;
+	
+	// Setup torpedo parameters
+	final int TORPEDOLIMIT = 4;
+	int numTorpedos;
+	Torpedo[] torpedoBank = new Torpedo[TORPEDOLIMIT];
+	
+	Image img = new Image("images/enterprise.png");
+	
+	int health = 30;
+	
+	public static AudioClip playerPhaser;
+	
 
 	public PlayerShip(double x, double y) {
 		super(x, y);
 
 		this.active = true;
 		this.visible = true;
+		
+		for (int i = 0; i < PHASERLIMIT; i++) {
+			phaserBank[i] = new Phaser(0,0,3);
+			phaserBank[i].active = false;
+		} 
+		
+		for (int i = 0; i < TORPEDOLIMIT; i++) {
+			torpedoBank[i] = new Torpedo(0,0);
+			torpedoBank[i].active = false;
+		}
+		
+		playerPhaser = new AudioClip(ClassLoader.getSystemResource("sounds/ent_phaser.mp3").toString());
 	}
 
 	void render(GraphicsContext gc) {
 		// render phaser aim
-		gc.setStroke(Color.YELLOW);
-		gc.strokeLine(x + (size/2), y + (size/2), x + (size/2) + p_aim , y - (size/2) - 10 + (p_aim * 0.5));
+//		gc.setStroke(Color.YELLOW);
+//		gc.strokeLine(x + (size/2), y + (size/2), x + (size/2) + p_aim , y - (size/2) - 10 + (p_aim * 0.5));
 
 		// render ship
-		gc.setFill(Color.CADETBLUE);
-		gc.fillRect(x, y, size, size);
+//		gc.setFill(Color.CADETBLUE);
+//		gc.fillRect(x, y, size, size);
+		gc.drawImage(img,x, y);
+		
+		renderPhasers(gc);
+		renderTorpedos(gc);
 
 	}
 
@@ -67,55 +90,83 @@ public class PlayerShip extends Sprite {
 		if (x < 0) {
 			x = 0;
 		}
+		
+		if (phaserCooldown) {
+			//System.out.println(counter);
+			if (counter <= 0) {
+				phaserCooldown = false;
+				
+			} else {
+				counter--;
+				if (counter % StarTrek.FPS == 0) {
+					numPhasers--;
+				}
+			}
+		}
+		
+		updatePhasers();
+		updateTorpedos();
 	}
 
-	void shootPhaser() {
+	void firePhaser() {
 		//Phaser p = new Phaser(this.x + (this.size/2) - 2.5, this.y, 3); // type 3 is player
-		if (!phaserEmpty) {
-
-			if (phaser >= 0) {
-				beams[phaser].x = (this.x + (this.size/2) - 2.5);
-				beams[phaser].y = this.y;
-				beams[phaser].type = 3;
-				beams[phaser].active = true;
-
-				if (phaser == 0) {
-					phaserEmpty = true;
-					phaser = beams.length - 1;
-					return;
-				}
-
-
-				phaser--;
-
-
+		if (!phaserCooldown) {
+		// If number of phasers shot is less than the number allowed (the size of the phaser bank)
+			if (numPhasers < PHASERLIMIT - 1) {
+				phaserBank[numPhasers] = new Phaser(this.x + (this.size/2) - 2.5, this.y, 3);
+				
+				System.out.println("phaser type: " + phaserBank[numPhasers].type);
+				
+				//System.out.println("FIRE" + numPhasers);
+				numPhasers++;
+				//System.out.println("numPhasers: " + numPhasers);
+				playerPhaser.play();
+				
+				if (numPhasers >= PHASERLIMIT - 1) {
+					phaserCooldown = true;
+					counter = PHASERRELOAD; 
+				}	
 			}
+		} else {
+			StarTrek.unableToComply.play();
+		}
+	}
+	
+	void updatePhasers() {
+		for (int i = 0; i <= numPhasers; i++) {
+			phaserBank[i].update();
+		}
+	}
+	
+	void renderPhasers(GraphicsContext gc) {
+		for (int i = 0; i <= numPhasers; i++) {
+			phaserBank[i].render(gc);
 		}
 	}
 
-	void shootTorpedo() {
-		if (!torpedoEmpty) {
-
-			if (torpedo >= 0) {
-				torpedos[torpedo].x = (this.x + (this.size/2) - 2.5);
-				torpedos[torpedo].y = this.y;
-				torpedos[torpedo].active = true;
-
-				if (phaser == 0) {
-					torpedoEmpty = true;
-					return;
-				}
-
-
-				torpedo--;
-
-
-			}
+	void fireTorpedo() {
+		if (numTorpedos < TORPEDOLIMIT - 1) {
+			torpedoBank[numTorpedos] = new Torpedo(this.x + (this.size/2) - 2.5, this.y);
+			numTorpedos++;
+			StarTrek.torpedoSound.play();
+		} else {
+			StarTrek.unableToComply.play();
 		}
+	}	
 
-
+	void updateTorpedos() {
+		for (int i = 0; i <= numTorpedos; i++) {
+			if (active)
+				torpedoBank[i].update();
+		}
 	}
-
+	
+	void renderTorpedos(GraphicsContext gc) {
+		for (int i = 0; i <= numTorpedos; i++) {
+			if (active)
+				torpedoBank[i].render(gc);
+		}
+	}
 
 
 }

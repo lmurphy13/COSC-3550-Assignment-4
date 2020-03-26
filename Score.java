@@ -17,6 +17,7 @@ public class Score {
 	double y;
 	int value;
 	String text = "";
+	boolean hasVal;
 	
 	Font font;
 	
@@ -27,12 +28,28 @@ public class Score {
 		this.value = val;
 		font = Font.font("SansSerif", FontWeight.BOLD, 18);
 		
+		hasVal = true;
+	}
+	
+	public Score(double x, double y, String text) {
+		this.x = x;
+		this.y = y;
+		this.text = text;
+		font = Font.font("SansSerif", FontWeight.BOLD, 18);
+		
+		hasVal = false;
 	}
 	
 	public void render(GraphicsContext gc) {
 		gc.setFill(Color.BLACK);
 		gc.setFont(font);
-		gc.fillText(text + Integer.toString(this.value), this.x, this.y);
+		
+		if (hasVal) {
+			gc.fillText(text + Integer.toString(this.value), this.x, this.y);
+		} else {
+			gc.fillText(text, this.x, this.y);
+		}
+		
 	}
 	
 	public void updateValue(int v) {

@@ -15,11 +15,14 @@ public class Torpedo {
 		this.x = x;
 		this.y = y;
 		
+		this.active = true;
 	}
 	
 	void render(GraphicsContext gc) {
-		gc.setFill(Color.RED);
-		gc.fillOval(this.x, this.y - 10, diameter, diameter);
+		if (active) {
+			gc.setFill(Color.RED);
+			gc.fillOval(this.x, this.y - 10, diameter, diameter);
+		}
 	}
 	
 	void update() {
