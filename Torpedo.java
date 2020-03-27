@@ -4,7 +4,7 @@ import javafx.scene.paint.Color;
 public class Torpedo {
 	double x, y;
 	double dx = 0;
-	double dy = -3.0;
+	double dy = -10.0;
 	
 	double length = 30;
 	double diameter = 5;

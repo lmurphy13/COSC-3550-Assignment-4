@@ -33,51 +33,106 @@ public class StarTrek extends Application {
 	 * States:
 	 * 0: Title screen
 	 * 1: Controls
-	 * 2: Instructions
-	 * 3: Level 1
-	 * 4: Level 2
-	 * 5: Level 3
-	 * 6: End Screen
+	 * 2: Level 1
+	 * 3: Level 2
+	 * 4: Level 3
+	 * 5: End Screen
 	 */
+	
+	final static int TITLE = 0;
+	final static int CONTROLS = 1;
+	final static int LEVEL1 = 2;
+	final static int LEVEL2 = 3;
+	final static int LEVEL3 = 4;
+	final static int END = 5;
 
-	static int state = 0;
+	static int state = TITLE;
 			; // title screen by default
 
 	/* STATE 0 - TITLE SCREEN */
+			
+			/* Script
+			 * 13 seconds of stars
+			 * Slide in STAR TREK
+			 * wait 5 more seconds
+			 * Slide in The Original Game
+			 */
 	
-	final int NUMSTARS = 100;
-	IntroStar[] introStars = new IntroStar[NUMSTARS];
+	final int NUMSTARS = 300;
+	Star[] introStars = new Star[NUMSTARS];
 	
+	Image starTrek = new Image("images/startrek.png");
+	int stX = -300;
+	
+	Image theGame = new Image("images/thegame.png");
+	int tgX = WIDTH + 100;
+	
+	Image author = new Image("images/author.png");
+	int aX = -250;
+	
+	Image play = new Image("images/play.png");
+	int pY = HEIGHT + 50;
+	
+	Image controls = new Image("images/controls.png");
+	int cY = HEIGHT + 80;
+	
+	Image quit = new Image("images/quit.png");
+	int qY = HEIGHT + 110;
+	
+	Cursor cursor = new Cursor();
+	
+
+	
+	final int INTROCOUNT = FPS * 40;
+	int intro = 0;
 	/* END STATE 0 */
 	
+	/* STATE 1 - CONTROLS */
+	Image controlTitle = new Image("images/controlTitle.png");
+	Image back = new Image("images/back.png");
+	Image inst1 = new Image("images/inst1.png");
+	Image inst2 = new Image("images/inst2.png");
+	Image inst3 = new Image("images/inst3.png");
+	/* END STATE 1*/
 	
-	/* STATE 3 - GAMEPLAY */
 	
+	
+	/* STATE 2 - LEVEL 1 */
 	Asteroid[] asts = new Asteroid[20];
 	String[] asteroidPics = new String[5];
 	
 	Star[] stars = new Star[150];
 
 	EnemyShip[] enemies = new EnemyShip[3];
-	PlayerShip ps;
-
-	Score livesScore = new Score(30, HEIGHT-60, "Lives: ", 3);
-	Score phaserLevel = new Score(30, HEIGHT-90, "Phaser Charge");
-	Score torpedoLevel = new Score(WIDTH - 220, FIELDHEIGHT + 20, "Torpedos Remaining");
-	
+	PlayerShip ps = new PlayerShip(FIELDWIDTH / 2, FIELDHEIGHT / 2);
 	int lives = 3;
+
+	Score livesScore = new Score(30, HEIGHT-60, "Lives: ", lives);
+	Score phaserLevel = new Score(30, HEIGHT-90, "Phaser Bank Charge");
+	Score torpedoLevel = new Score(WIDTH - 260, FIELDHEIGHT + 20, "Photon Torpedos Remaining");
+	Score playerHealth = new Score(WIDTH - 240, HEIGHT - 5, "Health: ", ps.health);
 	
 	
 	final int FIRERATE = FPS * 3;
 	int countFire = FIRERATE;
+	/* END STATE 2 */
+	
+	
+	/* STATE 3 - LEVEL 2 */
 	
 	/* END STATE 3 */
 	
-	/* STATE 6 - END SCREEN */
+	
+	/* STATE 4 - LEVEL 3 */
+	
+	/* END STATE 4*/
 	
 	
+	/* STATE 5 - END SCREEN */
 	
-	/* END STATE 6 */
+	/* END STATE 5 */
+	
+	
 	
 	/* SOUND EFFECTS */
 	public static AudioClip playerPhaser;
@@ -87,8 +142,9 @@ public class StarTrek extends Application {
 	public static AudioClip torpedoSound;
 	public static AudioClip redAlert;
 	public static AudioClip unableToComply;
+	public static AudioClip smallExplosion;
+	public static AudioClip largeExplosion;
 	MediaPlayer mp;
-	
 	/* END SOUND EFFECTS */
 
 	void initialize() {
@@ -101,48 +157,53 @@ public class StarTrek extends Application {
 		torpedoSound = new AudioClip(ClassLoader.getSystemResource("sounds/ent_torpedo.mp3").toString());
 		redAlert = new AudioClip(ClassLoader.getSystemResource("sounds/redalert.mp3").toString());
 		unableToComply = new AudioClip(ClassLoader.getSystemResource("sounds/unabletocomply.mp3").toString());
+		smallExplosion = new AudioClip(ClassLoader.getSystemResource("sounds/smallexplosion.mp3").toString());
+		largeExplosion = new AudioClip(ClassLoader.getSystemResource("sounds/largeexplosion.mp3").toString());
 		Media titlesong = new Media(ClassLoader.getSystemResource("sounds/maintitle.mp3").toString());
 		Media endsong = new Media(ClassLoader.getSystemResource("sounds/endcredits.mp3").toString());
 		
 		
-		if (state == 0) {
+		if (state == TITLE) {
+			// Play opening song
 			mp = new MediaPlayer(titlesong);
 			mp.play();
 			
+			// Spawn star field
 			for (int i = 0; i < introStars.length; i++) {
-				introStars[i] = new IntroStar();
+				introStars[i] = new Star();
+			}	
+		}
+		
+		if (state == CONTROLS) {
+			// Spawn star field
+			for (int i = 0; i < introStars.length; i++) {
+				introStars[i] = new Star();
 			}
 			
 			
 		}
 		
-		if (state == 3) {
-			for (int i = 1; i <= asteroidPics.length; i++) {
-				asteroidPics[i - 1] = "images/asteroid" + i + ".png";
-			}
-			
-			ps = new PlayerShip(FIELDWIDTH / 2, FIELDHEIGHT / 2);
-			
-			for (int i = 0; i < asts.length; i++) {
-				int randAsteroid = rand.nextInt(5);
-				
-				asts[i] = new Asteroid(new Image(asteroidPics[randAsteroid])); 
-			}
+		if (state == LEVEL1) {
 	
 			for (int i = 0; i < stars.length; i++) {
 				stars[i] = new Star();
 			}
-	
-			enemies[0] = new EnemyShip(200,200, 0);
-		
-			enemies[1] = new EnemyShip(400,100, 1);
 			
-			enemies[2] = new EnemyShip(600,200, 2);
+			for (int i = 0; i < asts.length; i++) {
+				asts[i] = new Asteroid();
+			}
+	
+			enemies[0] = new EnemyShip(200,100, 0);
+		
+			enemies[1] = new EnemyShip(400,200, 0);
+			
+			enemies[2] = new EnemyShip(600,300, 0);
 			
 		}
 		
-		if (state == 6) {
-			
+		if (state == END) {
+			mp = new MediaPlayer(endsong);
+			mp.play();
 		}
 
 
@@ -152,8 +213,44 @@ public class StarTrek extends Application {
 		scene.setOnKeyPressed(
 				e -> {
 					KeyCode c = e.getCode();
+					
+					if (state == TITLE) {
+						switch (c) {
+							case SPACE: 
+								mp.stop();
+								intro = INTROCOUNT;
+								break;
+							case UP: cursor.state = cursor.state - 1; break;
+							case DOWN: cursor.state = (cursor.state + 1) % 3; break;
+							case ENTER:
+								switch (cursor.state) {
+									case 0: 
+										mp.stop();
+										state = LEVEL1; 
+										initialize();
+										return;
+									case 1:
+										mp.stop();
+										state = CONTROLS;
+										initialize();
+										return;
+									case 2:
+										System.exit(0);
+									
+								}
+						}
+					}
+					
+					if (state == CONTROLS) {
+						switch (c) {
+							case SPACE: 
+								state = TITLE; 
+								initialize(); 
+								return;
+						}
+					}
 
-					if (state == 3) {
+					if (state == LEVEL1 || state == LEVEL2 || state == LEVEL3) {
 						switch (c) {
 							case UP: ps.setVelocity(ps.dx, -10); break;
 							case DOWN: ps.setVelocity(ps.dx, 10); break;
@@ -170,7 +267,7 @@ public class StarTrek extends Application {
 				e -> {
 					KeyCode c = e.getCode();
 
-					if (state == 3) {
+					if (state == LEVEL1 || state == LEVEL2 || state == LEVEL3) {
 						switch (c) {
 							case UP: ps.setVelocity(ps.dx, 0); break;
 							case DOWN: ps.setVelocity(ps.dx, 0); break;
@@ -185,25 +282,64 @@ public class StarTrek extends Application {
 
 	void update() {
 		
-		if (state == 0) {
-			for (IntroStar s : introStars) {
-				s.update();
+		if (state == TITLE) {
+			if (intro <= INTROCOUNT + 100) {
+				if (intro >= FPS * 13) {	// 13 seconds
+					if (stX <= WIDTH/2 - 140) {
+						stX += 10;
+					}
+				}
+				
+				if (intro >= FPS * 18) {	// 18 seconds
+					if (tgX >= WIDTH/2 - 240) {
+						tgX -= 10;
+					}
+				}
+				
+				if (intro >= FPS * 25) {
+					if (aX <= WIDTH/2 - 140) {
+						aX += 10;
+					}
+				}
+				
+				if (intro >= FPS * 30) {
+					if (pY >= 350)
+						pY -= 10;
+					
+					if (cY >= 450)
+						cY -=10;
+					
+					if (qY > 550)
+						qY -= 10;
+				}
+				
+				if (intro >= FPS * 32) {
+					cursor.active = true;
+				}
+				
+				
+				intro++;
+				
+				
 			}
 		}
 		
-		if (state == 3) {
-			// Check for collisions between player and asteroid
+		if (state == CONTROLS) {
+			// do nothing
+		}
+		
+		if (state == LEVEL1) {
+			
 			for (Asteroid a : asts) {
 				if (a.active) {
-				
-					a.update();
+					// Check for collisions between player and asteroid
 					if (a.collidesWith(ps) && a.active) {
-						ps.x = FIELDWIDTH / 2;
-						ps.y = FIELDHEIGHT / 2;
-						ps.health -= 10;
+						smallExplosion.play();
+						ps.health -= 3.5;
+						a.active = false;
 					}
 		
-		
+					// Check for collisions between phaser beam and asteroid
 					for (Phaser p : ps.phaserBank) {
 						if (a.collidesWith(p)) {
 							a.active = false;
@@ -211,67 +347,151 @@ public class StarTrek extends Application {
 						}
 					}
 					
+					// Check for collisions between torpedo and asteroid
 					for (Torpedo t : ps.torpedoBank) {
 						if (a.collidesWith(t)) {
 							a.active = false;
 							t.active = false;
 						}
 					}
+					
+					a.update();
 				}
 	
 			}
-	
+			
 			for (EnemyShip e : enemies) {
-				if (e.collidesWith(ps)) {
-					ps.x = FIELDWIDTH / 2;
-					ps.y = FIELDHEIGHT / 2;
-					lives--;
+				if (e.active) {
+					// Check for collision between enemy ship and player
+					if (e.collidesWith(ps)) {
+						ps.health -= 10;
+						e.health -= 10;
+					}
+					
+					// Check for collision between enemy phaser and player
+					for (Phaser p : e.phaserBank) {
+						if (p.active) {
+							if (ps.collidesWith(p)) {
+								ps.health -= 3.5;
+								p.active = false;
+							}
+						}
+					}
+					
+					// Check for collision between player weapons and enemy
+					for (Phaser p : ps.phaserBank) {
+						if (p.active) {
+							if (e.collidesWith(p)) {
+								e.health -= 3.5;
+								p.active = false;
+							}
+						}
+					}
+					
+					for (Torpedo t : ps.torpedoBank) {
+						if (t.active) {
+							if (e.collidesWith(t)) {
+								e.health -= 8.5;
+								t.active = false;
+							}
+						}
+					}
+					
+					// Update enemies and check their health
+					if (e.health <= 0) {
+						largeExplosion.play();
+						e.active = false;
+					}
+					
+					e.update();
 				}
 			}
 	
 			ps.update();
 			
-			for (EnemyShip e : enemies) {
-				e.update();
-			}
 			
-			if (lives < 0) {
-				lives = 0;
+			if (lives <= 0) {
+				state = 6;
+				initialize();
+				return;
 			}
 			
 			livesScore.updateValue(lives);
+			playerHealth.updateValue(ps.health);
 			
 			if (ps.health <= 0) {
+				largeExplosion.play();
 				lives--;
+				ps.health = 30;
+				ps.x = WIDTH/2;
+				ps.y = FIELDHEIGHT/2;
 			}
+			
+			
 			
 			// Enemy fire testing
 			
 			if (countFire <= 0) {
-				enemies[0].firePhaser();
-				enemies[1].firePhaser();
-				enemies[2].firePhaser();
+				for (EnemyShip e : enemies) {
+					if (e.active)
+						e.firePhaser();
+				}
 				countFire = FIRERATE;
 			} else {
 				countFire--;
 			}
 		}
+		
+		if (state == END) {
+			
+		}
 	}
 
 
 	public void render(GraphicsContext gc) {
-		if (state == 0) {
+		if (state == TITLE) {
 			// Draw background
 			gc.setFill(Color.BLACK);
 			gc.fillRect(0, 0, WIDTH, HEIGHT);
 			
 			// Draw starfield
-			for (IntroStar s : introStars) {
+			for (Star s : introStars) {
 				s.render(gc);
 			}
+			
+			// Draw Title Text
+			gc.drawImage(starTrek, stX, 50);
+			gc.drawImage(theGame, tgX, 150);
+			gc.drawImage(author, aX, 250);
+			gc.drawImage(play, WIDTH/2 - 100, pY);
+			gc.drawImage(controls, WIDTH/2 - 100, cY);
+			gc.drawImage(quit, WIDTH/2 - 100, qY);
+			
+			// Draw cursor
+			cursor.render(gc);
+			
 		}
 		
-		if (state == 3) {
+		if (state == CONTROLS) {
+			// Draw background
+			gc.setFill(Color.BLACK);
+			gc.fillRect(0, 0, WIDTH, HEIGHT);
+		
+			// Draw new starfield
+			for (Star s : introStars) {
+				s.render(gc);
+			}
+			
+			gc.drawImage(controlTitle, WIDTH/2 - 120, 50);
+			gc.drawImage(inst1,70, 150);
+			gc.drawImage(inst2,90, 300);
+			gc.drawImage(inst3,90, 450);
+			gc.drawImage(back, WIDTH/2 - 180, HEIGHT-100);
+			
+			
+		}
+		
+		if (state == LEVEL1) {
 			// Draw background
 			gc.setFill(Color.BLACK);
 			gc.fillRect(0, 0, WIDTH, HEIGHT);
@@ -286,8 +506,7 @@ public class StarTrek extends Application {
 			gc.setFill(Color.LIGHTBLUE);
 			gc.fillRect(0, HEIGHT-150, WIDTH, 200);
 	
-			// Render scanning animation - NOT WORKING YET
-			renderScan(gc);
+			
 	
 	
 			// Draw asteroids
@@ -309,6 +528,13 @@ public class StarTrek extends Application {
 				gc.fillOval(30 + (life * 50), HEIGHT-50, 30, 30);
 			}
 			
+			// Draw health indicator 
+			gc.setFill(Color.BLACK);
+			gc.fillRect(WIDTH - 330, HEIGHT-40, 300, 20);
+			gc.setFill(Color.RED);
+			gc.fillRect(WIDTH - 325, HEIGHT-35, ps.health * 9.6, 10);
+			
+			
 			// Draw phaser status indicator
 			gc.setFill(Color.BLACK);
 			gc.fillRect(30, FIELDHEIGHT + 20, 300, 20);
@@ -325,53 +551,17 @@ public class StarTrek extends Application {
 			// Draw torpedo indicator
 			gc.setFill(Color.RED);
 			for (int t = 0; t < (ps.TORPEDOLIMIT - 1) - ps.numTorpedos; t++) {
-				gc.fillOval(WIDTH - 200 + (t * 50), FIELDHEIGHT + 30, 30, 30);
+				gc.fillOval(WIDTH - 250 + (t * 50), FIELDHEIGHT + 30, 30, 30);
 			}
-			
-			
 			
 			livesScore.render(gc);
 			phaserLevel.render(gc);
 			torpedoLevel.render(gc);
+			playerHealth.render(gc);
 		}
 	}
 
-	void renderScan(GraphicsContext gc) {
-		if (state == 3) {
-			int scancount = 100;
-			int j = 0;
 	
-			gc.setFill(Color.BLACK);
-			gc.fillRect((WIDTH/4), HEIGHT-30, 400, 20);
-	
-			for (int i = WIDTH/4 + 5; i < WIDTH/4 + 395; i += 20) {
-				gc.setFill(Color.YELLOW);
-				gc.fillRect(i, HEIGHT-25, 10, 10);	
-			}
-	
-			for (int i = WIDTH/4 + 5; i < WIDTH/4 + 395; i += 20) {
-				gc.setFill(Color.YELLOW);
-				gc.fillRect(i, HEIGHT-25, 10, 10);
-	
-				while (scancount > 0) {
-					j += 1;
-					scancount--;
-				}
-				scancount = 100;
-	
-				gc.setFill(Color.CHOCOLATE);
-				gc.fillRect(i, HEIGHT-25, 10, 10);
-	
-				while (scancount > 0) {
-					j += 1;
-					scancount--;
-				}
-				scancount = 100;
-			}	
-
-		}
-
-	}
 	
 
 
@@ -398,10 +588,6 @@ public class StarTrek extends Application {
 
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 		
-		if (state == 0) {
-			canvas.setTranslateX(WIDTH/2);
-			canvas.setTranslateY(HEIGHT/2);
-		}
 
 		// Initial setup
 		initialize();

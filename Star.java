@@ -10,7 +10,7 @@ public class Star {
 		Random rand = new Random();
 		
 		this.x = StarTrek.WIDTH * rand.nextDouble();
-		this.y = (StarTrek.HEIGHT - 150) * rand.nextDouble();
+		this.y = (StarTrek.HEIGHT) * rand.nextDouble();
 	}
 	
 	void render(GraphicsContext gc) {

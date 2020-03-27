@@ -27,7 +27,7 @@ public class Phaser {
 		this.type = t;
 		
 		this.dx = 0;
-		this.dy = -10;
+		this.dy = -30;
 		
 		this.active = true;
 	}

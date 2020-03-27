@@ -16,8 +16,10 @@ public class Score {
 	double x;
 	double y;
 	int value;
+	double dValue;
 	String text = "";
-	boolean hasVal;
+	boolean hasValInt = false;
+	boolean hasValDouble = false;
 	
 	Font font;
 	
@@ -28,7 +30,17 @@ public class Score {
 		this.value = val;
 		font = Font.font("SansSerif", FontWeight.BOLD, 18);
 		
-		hasVal = true;
+		hasValInt = true;
+	}
+	
+	public Score(double x, double y, String text, double val) {
+		this.x = x;
+		this.y = y;
+		this.text = text;
+		this.dValue = val;
+		font = Font.font("SansSerif", FontWeight.BOLD, 18);
+		
+		hasValDouble = true;
 	}
 	
 	public Score(double x, double y, String text) {
@@ -36,16 +48,16 @@ public class Score {
 		this.y = y;
 		this.text = text;
 		font = Font.font("SansSerif", FontWeight.BOLD, 18);
-		
-		hasVal = false;
 	}
 	
 	public void render(GraphicsContext gc) {
 		gc.setFill(Color.BLACK);
 		gc.setFont(font);
 		
-		if (hasVal) {
+		if (hasValInt) {
 			gc.fillText(text + Integer.toString(this.value), this.x, this.y);
+		} else if (hasValDouble) {
+			gc.fillText(text + Double.toString(this.dValue), this.x, this.y);
 		} else {
 			gc.fillText(text, this.x, this.y);
 		}
@@ -54,6 +66,10 @@ public class Score {
 	
 	public void updateValue(int v) {
 		this.value = v;
+	}
+	
+	public void updateValue(double v) {
+		this.dValue = v;
 	}
 	
 	public void reset() {

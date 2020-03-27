@@ -6,7 +6,9 @@ import javafx.scene.paint.Color;
 public class EnemyShip extends Sprite {
 	
 	int type; // type indicates species of enemy: 0 - Klingon, 1 - Romulan, 2 - Borg
-	int size = 20;
+	int size = 40;
+	
+	double health = 30;
 	
 	Image img;
 	
@@ -105,22 +107,18 @@ public class EnemyShip extends Sprite {
 
 	
 	void render(GraphicsContext gc) {
-//		switch (this.type) {
-//			case 0:
-////				gc.setFill(Color.DARKRED);
-////				gc.fillOval(this.x, this.y, 20, 20);
-//				gc.drawImage(img, this.x, this.y);
-//				break;
-//			case 1:
-//				gc.setFill(Color.DARKGREEN);
-//				gc.fillOval(this.x, this.y, 20, 20);
-//				break;
-//			case 2:
-//				gc.setFill(Color.DARKGRAY);
-//				gc.fillOval(this.x, this.y, 20, 20);
-//		}
-		gc.drawImage(this.img, this.x, this.y);
-		renderPhasers(gc);
+		
+		if (active) {
+			// Draw ship image
+			gc.drawImage(this.img, this.x, this.y);
+			
+			// Draw health bar
+			gc.setFill(Color.RED);
+			gc.fillRect(this.x + 5, this.y - 10, this.health, 5);
+			
+			// Render phasers
+			renderPhasers(gc);
+		}
 	}
 	
 	boolean collidesWith(PlayerShip ps) {
@@ -131,5 +129,25 @@ public class EnemyShip extends Sprite {
 			return true;
 		else
 			return false;
+	}
+	
+	boolean collidesWith(Phaser p) {
+		if (p.x + p.width > this.x
+				&& p.x < this.x + size
+				&& p.y + p.length > this.y
+				&& p.y < this.y + size)
+				return true;
+			else
+				return false;
+	}
+	
+	boolean collidesWith(Torpedo t) {
+		if (t.x + t.diameter > this.x
+				&& t.x < this.x + size
+				&& t.y + t.diameter > this.y
+				&& t.y < this.y + size)
+				return true;
+			else
+				return false;
 	}
 }

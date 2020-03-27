@@ -12,15 +12,13 @@ public class Asteroid {
 	
 	Image img;
 	
-	public Asteroid(Image i) {
-		
-		this.img = i;
+	public Asteroid() {
 		
 		Random rand = new Random();
 		
 		// Random position
 		this.x = StarTrek.WIDTH * rand.nextDouble();
-		this.y = (StarTrek.HEIGHT - 150) * rand.nextDouble();
+		this.y = (StarTrek.FIELDHEIGHT - 10) * rand.nextDouble();
 		
 		
 		// Random velocity and direction

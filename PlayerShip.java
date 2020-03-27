@@ -20,13 +20,13 @@ public class PlayerShip extends Sprite {
 	int counter = PHASERRELOAD;
 	
 	// Setup torpedo parameters
-	final int TORPEDOLIMIT = 4;
+	final int TORPEDOLIMIT = 6;	// one more than the limit. this lets there be a limit, i don't know why
 	int numTorpedos;
 	Torpedo[] torpedoBank = new Torpedo[TORPEDOLIMIT];
 	
 	Image img = new Image("images/enterprise.png");
 	
-	int health = 30;
+	double health = 30;
 	
 	public static AudioClip playerPhaser;
 	
@@ -115,8 +115,6 @@ public class PlayerShip extends Sprite {
 			if (numPhasers < PHASERLIMIT - 1) {
 				phaserBank[numPhasers] = new Phaser(this.x + (this.size/2) - 2.5, this.y, 3);
 				
-				System.out.println("phaser type: " + phaserBank[numPhasers].type);
-				
 				//System.out.println("FIRE" + numPhasers);
 				numPhasers++;
 				//System.out.println("numPhasers: " + numPhasers);
@@ -166,6 +164,16 @@ public class PlayerShip extends Sprite {
 			if (active)
 				torpedoBank[i].render(gc);
 		}
+	}
+	
+	boolean collidesWith(Phaser p) {
+		if (p.x + p.width > this.x
+				&& p.x < this.x + size
+				&& p.y + p.length > this.y
+				&& p.y < this.y + size)
+				return true;
+			else
+				return false;
 	}
 
 
