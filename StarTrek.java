@@ -745,7 +745,7 @@ public class StarTrek extends Application {
 			}
 			
 			if (lives <= 0) {
-				state = 6;
+				state = END;
 				initialize();
 				return;
 			}
