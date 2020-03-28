@@ -175,6 +175,26 @@ public class PlayerShip extends Sprite {
 			else
 				return false;
 	}
+	
+	void reset() {
+		this.active = true;
+		this.visible = true;
+		
+		for (int i = 0; i < PHASERLIMIT; i++) {
+			phaserBank[i] = new Phaser(0,0,3);
+			phaserBank[i].active = false;
+		} 
+		
+		numTorpedos = 0;
+		for (int i = 0; i < TORPEDOLIMIT; i++) {
+			torpedoBank[i] = new Torpedo(0,0);
+			torpedoBank[i].active = false;
+		}
+		
+		phaserCooldown = false;
+		counter = PHASERRELOAD;
+		health = 30;
+	}
 
 
 }

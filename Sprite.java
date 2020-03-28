@@ -1,12 +1,14 @@
-import javafx.geometry.BoundingBox;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
-
 public class Sprite {
 	double x, y;
 	double dx, dy;
 
+	// Finite state machine for movement
+	final int GO_UP = 0;
+	final int GO_DOWN = 1;
+	final int GO_LEFT = 2;
+	final int GO_RIGHT = 3;
+	
+	int state;
 
 	boolean active = true;
 	boolean visible = true;

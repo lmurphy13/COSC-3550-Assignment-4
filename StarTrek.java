@@ -97,13 +97,13 @@ public class StarTrek extends Application {
 	
 	
 	
-	/* STATE 2 - LEVEL 1 */
+	/* STATE 2 - 5 | LEVEL 1 - 3 */
 	Asteroid[] asts = new Asteroid[20];
 	String[] asteroidPics = new String[5];
 	
 	Star[] stars = new Star[150];
 
-	EnemyShip[] enemies = new EnemyShip[3];
+	EnemyShip[] enemies = new EnemyShip[5];
 	PlayerShip ps = new PlayerShip(FIELDWIDTH / 2, FIELDHEIGHT / 2);
 	int lives = 3;
 
@@ -115,21 +115,18 @@ public class StarTrek extends Application {
 	
 	final int FIRERATE = FPS * 3;
 	int countFire = FIRERATE;
-	/* END STATE 2 */
 	
-	
-	/* STATE 3 - LEVEL 2 */
-	
-	/* END STATE 3 */
-	
-	
-	/* STATE 4 - LEVEL 3 */
-	
-	/* END STATE 4*/
-	
+	final int BORGDELAY = FPS * 18;
+	int borgCount = 0;
+	/* END STATE 2 - 5 | LEVEL 1 - 3 */
+
 	
 	/* STATE 5 - END SCREEN */
+	boolean playerWon = false;
 	
+	Image youWin = new Image("images/youwin.png");
+	Image youLose = new Image("images/youlose.png");
+	Image congrats = new Image("images/congrats.png");
 	/* END STATE 5 */
 	
 	
@@ -144,6 +141,7 @@ public class StarTrek extends Application {
 	public static AudioClip unableToComply;
 	public static AudioClip smallExplosion;
 	public static AudioClip largeExplosion;
+	public static AudioClip borg;
 	MediaPlayer mp;
 	/* END SOUND EFFECTS */
 
@@ -159,6 +157,7 @@ public class StarTrek extends Application {
 		unableToComply = new AudioClip(ClassLoader.getSystemResource("sounds/unabletocomply.mp3").toString());
 		smallExplosion = new AudioClip(ClassLoader.getSystemResource("sounds/smallexplosion.mp3").toString());
 		largeExplosion = new AudioClip(ClassLoader.getSystemResource("sounds/largeexplosion.mp3").toString());
+		borg = new AudioClip(ClassLoader.getSystemResource("sounds/borg.mp3").toString());
 		Media titlesong = new Media(ClassLoader.getSystemResource("sounds/maintitle.mp3").toString());
 		Media endsong = new Media(ClassLoader.getSystemResource("sounds/endcredits.mp3").toString());
 		
@@ -194,16 +193,89 @@ public class StarTrek extends Application {
 			}
 	
 			enemies[0] = new EnemyShip(200,100, 0);
+			enemies[0].dx = 5;
 		
 			enemies[1] = new EnemyShip(400,200, 0);
+			enemies[1].dx = -5;
 			
 			enemies[2] = new EnemyShip(600,300, 0);
+			enemies[2].dx = 5;
 			
+			enemies[3] = new EnemyShip(0,0,0);
+			enemies[3].active = false;
+			
+			enemies[4] = new EnemyShip(0,0,0);
+			enemies[4].active = false;
+			
+		}
+		
+		if (state == LEVEL2) {
+			for (int i = 0; i < stars.length; i++) {
+				stars[i] = new Star();
+			}
+			
+			for (int i = 0; i < asts.length; i++) {
+				asts[i] = new Asteroid();
+			}
+			
+			ps.x = WIDTH/2;
+			ps.y = FIELDHEIGHT - 70;
+	
+			enemies[0] = new EnemyShip(100,100, 1);
+			enemies[0].dx = 7;
+		
+			enemies[1] = new EnemyShip(200,200, 1);
+			enemies[1].dx = -7;
+			
+			enemies[2] = new EnemyShip(300,300, 1);
+			enemies[2].dx = 7;
+			
+			enemies[3] = new EnemyShip(400,400, 1);
+			enemies[3].dx = -7;
+			
+			enemies[4] = new EnemyShip(0,0,0);
+			enemies[4].active = false;
+		}
+		
+		if (state == LEVEL3) {
+			
+			borg.play();
+			
+			for (int i = 0; i < stars.length; i++) {
+				stars[i] = new Star();
+			}
+			
+			for (int i = 0; i < asts.length; i++) {
+				asts[i] = new Asteroid();
+			}
+			
+			ps.x = WIDTH/2;
+			ps.y = FIELDHEIGHT - 70;
+	
+			enemies[0] = new EnemyShip(WIDTH/2, 30, 2);
+			enemies[0].dx = 9;
+		
+			enemies[1] = new EnemyShip(100,150, 2);
+			enemies[1].dx = -9;
+			
+			enemies[2] = new EnemyShip(WIDTH - 100,150, 2);
+			enemies[2].dx = 9;
+			
+			enemies[3] = new EnemyShip(300,300, 2);
+			enemies[3].dx = -9;
+			
+			enemies[4] = new EnemyShip(WIDTH - 300,300,2);
+			enemies[4].dx = 9;
 		}
 		
 		if (state == END) {
 			mp = new MediaPlayer(endsong);
 			mp.play();
+			
+			// Spawn star field
+			for (int i = 0; i < introStars.length; i++) {
+				introStars[i] = new Star();
+			}
 		}
 
 
@@ -405,13 +477,23 @@ public class StarTrek extends Application {
 					
 					e.update();
 				}
+				
 			}
 	
 			ps.update();
 			
+			// If all enemies are dead, move to Level 2
+			if (!enemies[0].active && !enemies[1].active && !enemies[2].active) {
+				state = LEVEL2;
+				ps.reset();
+				lives = 3;
+				
+				initialize();
+				return;
+			}
 			
 			if (lives <= 0) {
-				state = 6;
+				state = END;
 				initialize();
 				return;
 			}
@@ -437,6 +519,258 @@ public class StarTrek extends Application {
 						e.firePhaser();
 				}
 				countFire = FIRERATE;
+			} else {
+				countFire--;
+			}
+		}
+		
+		if (state == LEVEL2) {
+			for (Asteroid a : asts) {
+				if (a.active) {
+					// Check for collisions between player and asteroid
+					if (a.collidesWith(ps) && a.active) {
+						smallExplosion.play();
+						ps.health -= 3.5;
+						a.active = false;
+					}
+		
+					// Check for collisions between phaser beam and asteroid
+					for (Phaser p : ps.phaserBank) {
+						if (a.collidesWith(p)) {
+							a.active = false;
+							p.active = false;
+						}
+					}
+					
+					// Check for collisions between torpedo and asteroid
+					for (Torpedo t : ps.torpedoBank) {
+						if (a.collidesWith(t)) {
+							a.active = false;
+							t.active = false;
+						}
+					}
+					
+					a.update();
+				}
+	
+			}
+			
+			for (EnemyShip e : enemies) {
+				if (e.active) {
+					// Check for collision between enemy ship and player
+					if (e.collidesWith(ps)) {
+						ps.health -= 10;
+						e.health -= 10;
+					}
+					
+					// Check for collision between enemy phaser and player
+					for (Phaser p : e.phaserBank) {
+						if (p.active) {
+							if (ps.collidesWith(p)) {
+								ps.health -= 4.5;
+								p.active = false;
+							}
+						}
+					}
+					
+					// Check for collision between player weapons and enemy
+					for (Phaser p : ps.phaserBank) {
+						if (p.active) {
+							if (e.collidesWith(p)) {
+								e.health -= 3.5;
+								p.active = false;
+							}
+						}
+					}
+					
+					for (Torpedo t : ps.torpedoBank) {
+						if (t.active) {
+							if (e.collidesWith(t)) {
+								e.health -= 8.5;
+								t.active = false;
+							}
+						}
+					}
+					
+					// Update enemies and check their health
+					if (e.health <= 0) {
+						largeExplosion.play();
+						e.active = false;
+					}
+					
+					e.update();
+				}
+				
+			}
+	
+			ps.update();
+			
+			// If all enemies are dead, move to Level 3
+			if (!enemies[0].active && !enemies[1].active && !enemies[2].active && !enemies[3].active) {
+				state = LEVEL3;
+				ps.reset();
+				lives = 3;
+				
+				initialize();
+				return;
+			}
+			
+			if (lives <= 0) {
+				state = END;
+				initialize();
+				return;
+			}
+			
+			livesScore.updateValue(lives);
+			playerHealth.updateValue(ps.health);
+			
+			if (ps.health <= 0) {
+				largeExplosion.play();
+				lives--;
+				ps.health = 30;
+				ps.x = WIDTH/2;
+				ps.y = FIELDHEIGHT - 70;
+			}
+			
+			
+			
+			// Enemy fire testing
+			
+			if (countFire <= 0) {
+				for (EnemyShip e : enemies) {
+					if (e.active)
+						e.firePhaser();
+				}
+				countFire = FIRERATE / 2;
+			} else {
+				countFire--;
+			}
+		}
+		
+		if (state == LEVEL3) {
+			
+			
+			if (borgCount <= BORGDELAY) {
+				borgCount++;
+				return;
+			}
+			
+			
+			for (Asteroid a : asts) {
+				if (a.active) {
+					// Check for collisions between player and asteroid
+					if (a.collidesWith(ps) && a.active) {
+						smallExplosion.play();
+						ps.health -= 3.5;
+						a.active = false;
+					}
+		
+					// Check for collisions between phaser beam and asteroid
+					for (Phaser p : ps.phaserBank) {
+						if (a.collidesWith(p)) {
+							a.active = false;
+							p.active = false;
+						}
+					}
+					
+					// Check for collisions between torpedo and asteroid
+					for (Torpedo t : ps.torpedoBank) {
+						if (a.collidesWith(t)) {
+							a.active = false;
+							t.active = false;
+						}
+					}
+					
+					a.update();
+				}
+	
+			}
+			
+			for (EnemyShip e : enemies) {
+				if (e.active) {
+					// Check for collision between enemy ship and player
+					if (e.collidesWith(ps)) {
+						ps.health -= 10;
+						e.health -= 10;
+					}
+					
+					// Check for collision between enemy phaser and player
+					for (Phaser p : e.phaserBank) {
+						if (p.active) {
+							if (ps.collidesWith(p)) {
+								ps.health -= 5.5;
+								p.active = false;
+							}
+						}
+					}
+					
+					// Check for collision between player weapons and enemy
+					for (Phaser p : ps.phaserBank) {
+						if (p.active) {
+							if (e.collidesWith(p)) {
+								e.health -= 3.5;
+								p.active = false;
+							}
+						}
+					}
+					
+					for (Torpedo t : ps.torpedoBank) {
+						if (t.active) {
+							if (e.collidesWith(t)) {
+								e.health -= 8.5;
+								t.active = false;
+							}
+						}
+					}
+					
+					// Update enemies and check their health
+					if (e.health <= 0) {
+						largeExplosion.play();
+						e.active = false;
+					}
+					
+					e.update();
+				}
+				
+			}
+	
+			ps.update();
+			
+			// If all enemies are dead, move to Level 3
+			if (!enemies[0].active && !enemies[1].active && !enemies[2].active && !enemies[3].active) {
+				playerWon = true;
+				state = END;
+				initialize();
+				return;
+			}
+			
+			if (lives <= 0) {
+				state = 6;
+				initialize();
+				return;
+			}
+			
+			livesScore.updateValue(lives);
+			playerHealth.updateValue(ps.health);
+			
+			if (ps.health <= 0) {
+				largeExplosion.play();
+				lives--;
+				ps.health = 30;
+				ps.x = WIDTH/2;
+				ps.y = FIELDHEIGHT - 70;
+			}
+			
+			
+			
+			// Enemy fire testing
+			
+			if (countFire <= 0) {
+				for (EnemyShip e : enemies) {
+					if (e.active)
+						e.firePhaser();
+				}
+				countFire = FIRERATE / 2;
 			} else {
 				countFire--;
 			}
@@ -558,6 +892,162 @@ public class StarTrek extends Application {
 			phaserLevel.render(gc);
 			torpedoLevel.render(gc);
 			playerHealth.render(gc);
+		}
+		
+		if (state == LEVEL2) {
+			// Draw background
+			gc.setFill(Color.BLACK);
+			gc.fillRect(0, 0, WIDTH, HEIGHT);
+	
+			// Draw random stars in the background
+			for (Star s : stars) {
+				s.render(gc);
+			}
+	
+	
+			// Draw status panel background
+			gc.setFill(Color.LIGHTBLUE);
+			gc.fillRect(0, HEIGHT-150, WIDTH, 200);
+	
+			
+	
+	
+			// Draw asteroids
+			for (Asteroid a : asts) {
+				a.render(gc);
+			}
+	
+			// Draw player
+			ps.render(gc);
+	
+			// Draw enemies
+			for (EnemyShip es : enemies) {
+				es.render(gc);
+			}
+	
+			// Draw lives
+			gc.setFill(Color.GREEN);
+			for (int life = 0; life < lives; life++) {
+				gc.fillOval(30 + (life * 50), HEIGHT-50, 30, 30);
+			}
+			
+			// Draw health indicator 
+			gc.setFill(Color.BLACK);
+			gc.fillRect(WIDTH - 330, HEIGHT-40, 300, 20);
+			gc.setFill(Color.RED);
+			gc.fillRect(WIDTH - 325, HEIGHT-35, ps.health * 9.6, 10);
+			
+			
+			// Draw phaser status indicator
+			gc.setFill(Color.BLACK);
+			gc.fillRect(30, FIELDHEIGHT + 20, 300, 20);
+			gc.setFill(Color.YELLOW);
+			//gc.fillRect(35, FIELDHEIGHT + 25, ps.phaser+1 * 10, 10);
+			
+			// phaser bank is full
+			if (ps.numPhasers == 0) {
+				gc.fillRect(35, FIELDHEIGHT + 25, 290, 10);
+			} else if (ps.numPhasers < ps.PHASERLIMIT) {
+				gc.fillRect(35, FIELDHEIGHT + 25, (290 - ps.numPhasers * 29), 10);
+			}
+			
+			// Draw torpedo indicator
+			gc.setFill(Color.RED);
+			for (int t = 0; t < (ps.TORPEDOLIMIT - 1) - ps.numTorpedos; t++) {
+				gc.fillOval(WIDTH - 250 + (t * 50), FIELDHEIGHT + 30, 30, 30);
+			}
+			
+			livesScore.render(gc);
+			phaserLevel.render(gc);
+			torpedoLevel.render(gc);
+			playerHealth.render(gc);
+		}
+		
+		if (state == LEVEL3) {
+			// Draw background
+			gc.setFill(Color.BLACK);
+			gc.fillRect(0, 0, WIDTH, HEIGHT);
+	
+			// Draw random stars in the background
+			for (Star s : stars) {
+				s.render(gc);
+			}
+	
+	
+			// Draw status panel background
+			gc.setFill(Color.LIGHTBLUE);
+			gc.fillRect(0, HEIGHT-150, WIDTH, 200);
+	
+			
+	
+	
+			// Draw asteroids
+			for (Asteroid a : asts) {
+				a.render(gc);
+			}
+	
+			// Draw player
+			ps.render(gc);
+	
+			// Draw enemies
+			for (EnemyShip es : enemies) {
+				es.render(gc);
+			}
+	
+			// Draw lives
+			gc.setFill(Color.GREEN);
+			for (int life = 0; life < lives; life++) {
+				gc.fillOval(30 + (life * 50), HEIGHT-50, 30, 30);
+			}
+			
+			// Draw health indicator 
+			gc.setFill(Color.BLACK);
+			gc.fillRect(WIDTH - 330, HEIGHT-40, 300, 20);
+			gc.setFill(Color.RED);
+			gc.fillRect(WIDTH - 325, HEIGHT-35, ps.health * 9.6, 10);
+			
+			
+			// Draw phaser status indicator
+			gc.setFill(Color.BLACK);
+			gc.fillRect(30, FIELDHEIGHT + 20, 300, 20);
+			gc.setFill(Color.YELLOW);
+			//gc.fillRect(35, FIELDHEIGHT + 25, ps.phaser+1 * 10, 10);
+			
+			// phaser bank is full
+			if (ps.numPhasers == 0) {
+				gc.fillRect(35, FIELDHEIGHT + 25, 290, 10);
+			} else if (ps.numPhasers < ps.PHASERLIMIT) {
+				gc.fillRect(35, FIELDHEIGHT + 25, (290 - ps.numPhasers * 29), 10);
+			}
+			
+			// Draw torpedo indicator
+			gc.setFill(Color.RED);
+			for (int t = 0; t < (ps.TORPEDOLIMIT - 1) - ps.numTorpedos; t++) {
+				gc.fillOval(WIDTH - 250 + (t * 50), FIELDHEIGHT + 30, 30, 30);
+			}
+			
+			livesScore.render(gc);
+			phaserLevel.render(gc);
+			torpedoLevel.render(gc);
+			playerHealth.render(gc);
+		}
+		
+		if (state == END) {
+			// Draw background
+			gc.setFill(Color.BLACK);
+			gc.fillRect(0, 0, WIDTH, HEIGHT);
+			
+			// Draw starfield
+			for (Star s : introStars) {
+				s.render(gc);
+			}
+			
+			if (playerWon) {
+				gc.drawImage(congrats, 60, 200);
+				gc.drawImage(youWin, WIDTH/2 - 110, HEIGHT/2);
+			} else {
+				gc.drawImage(youLose, WIDTH/2 - 130, HEIGHT/2 - 100);
+			}
 		}
 	}
 

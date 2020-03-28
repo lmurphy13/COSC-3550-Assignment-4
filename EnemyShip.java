@@ -1,4 +1,3 @@
-import javafx.geometry.BoundingBox;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -7,22 +6,22 @@ public class EnemyShip extends Sprite {
 	
 	int type; // type indicates species of enemy: 0 - Klingon, 1 - Romulan, 2 - Borg
 	int size = 40;
-	
 	double health = 30;
 	
 	Image img;
 	
 	// Setup phaser parameters
-		final int PHASERRELOAD = StarTrek.FPS * 10;
-		final int PHASERLIMIT = 11;
-		int numPhasers = 0;
-		Phaser[] phaserBank = new Phaser[PHASERLIMIT];
-		boolean phaserCooldown = false;
-		int counter = PHASERRELOAD;
+	final int PHASERRELOAD = StarTrek.FPS * 10;
+	final int PHASERLIMIT = 11;
+	int numPhasers = 0;
+	Phaser[] phaserBank = new Phaser[PHASERLIMIT];
+	boolean phaserCooldown = false;
+	int counter = PHASERRELOAD;
 	
 	public EnemyShip(double x, double y, int t) {
 		super(x, y);
-		
+		this.dx = 0;
+		this.dy = 0;
 		this.type = t;
 		
 		switch (this.type) {
@@ -88,6 +87,31 @@ public class EnemyShip extends Sprite {
 	}
 	
 	void update() {
+		
+		if (this.x <= 10) {
+			this.state = GO_RIGHT;
+			this.dx = -this.dx;
+		}
+		
+		if (this.x >= StarTrek.FIELDWIDTH - this.size - 10) {
+			this.state = GO_LEFT;
+			this.dx = -this.dx;
+		}
+		
+		if (this.y <= 10) {
+			this.state = GO_DOWN;
+			this.dy = -this.dy;
+		}
+		
+		if (this.y >= StarTrek.FIELDHEIGHT - this.size - 10) {
+			this.state = GO_UP;
+			this.dy = -this.dy;
+		}
+		
+		this.x += this.dx;
+		this.y += this.dy;
+		
+		
 		if (phaserCooldown) {
 			//System.out.println(counter);
 			if (counter <= 0) {
